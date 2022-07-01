@@ -15,6 +15,11 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         return med.objects.all()
+    
+    def get_context_data(self, **kwargs):
+        context = super(IndexView, self).get_context_data(**kwargs)
+        context['count'] =  med.objects.all().count()
+        return context
 
 class CreateView(generic.edit.CreateView):
     template_name = 'pharma/create.html'
@@ -29,11 +34,14 @@ class OrderView(generic.ListView):
 
     def get_queryset(self):
         return med.objects.order_by('-medName')
-	
+    
 
 def ViewPostView(request, pk):
     Medi = get_object_or_404(med, pk=pk)
+    current_user = request.user
+    print (current_user.id)
     return render(request, 'pharma/view.html', {'med': Medi})
+
 
 class UpdateView(generic.edit.UpdateView):
     template_name = 'pharma/update.html'
@@ -48,31 +56,31 @@ class DeleteView(generic.edit.DeleteView):
 
 
 def register_request(request):
-	if request.method == "POST":
-		form = NewUserForm(request.POST)   
-		if form.is_valid():
-			user = form.save()
-			login(request, user)
-			messages.success(request, "Registration successful." )
-			return redirect("pharma:index")
-		messages.error(request, "Unsuccessful registration. Invalid information.")
-	form = NewUserForm()
-	return render (request=request, template_name="pharma/register.html", context={"register_form":form})
+    if request.method == "POST":
+        form = NewUserForm(request.POST)   
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, "Registration successful." )
+            return redirect("pharma:index")
+        messages.error(request, "Unsuccessful registration. Invalid information.")
+    form = NewUserForm()
+    return render (request=request, template_name="pharma/register.html", context={"register_form":form})
 
 def login_request(request):
-	if request.method == "POST":
-		form = AuthenticationForm(request, data=request.POST)
-		if form.is_valid():
-			username = form.cleaned_data.get('username')
-			password = form.cleaned_data.get('password')
-			user = authenticate(username=username, password=password)
-			if user is not None:
-				login(request, user)
-				messages.info(request, f"You are now logged in as {username}.")
-				return redirect("pharma:index")
-			else:
-				messages.error(request,"Invalid username or password.")
-		else:
-			messages.error(request,"Invalid username or password.")
-	form = AuthenticationForm()
-	return render(request=request, template_name="pharma/login.html", context={"login_form":form})
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f"You are now logged in as {username}.")
+                return redirect("pharma:index")
+            else:
+                messages.error(request,"Invalid username or password.")
+        else:
+            messages.error(request,"Invalid username or password.")
+    form = AuthenticationForm()
+    return render(request=request, template_name="pharma/login.html", context={"login_form":form})
